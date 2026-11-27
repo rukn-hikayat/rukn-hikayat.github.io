@@ -11,7 +11,7 @@ body{margin:0;font-family:'Noto Sans Arabic',system-ui,sans-serif;background:#f4
 .aya{font-family:'Noto Naskh Arabic','Noto Sans Arabic',serif;font-size:34px;line-height:2.1;margin:6px 0}
 .small{font-size:13px;color:#678}.mic{width:84px;height:84px;border-radius:50%;background:#e8505b;color:#fff;font-size:38px;line-height:84px;margin:10px auto;box-shadow:0 4px 0 #b83a44;cursor:pointer;border:0;display:block}
 .mic.on{background:#b00020}.w{display:inline-block;margin:3px 4px;padding:2px 10px;border-radius:10px;font-family:'Noto Naskh Arabic',serif;font-size:28px}
-.ok{background:#d9f2e3;color:#14532d}.close{background:#fff1b8;color:#7a5b00}.wrong{background:#ffd6d6;color:#8a1c1c}.missing{background:#fff;color:#8a1c1c;border:2px dashed #e88}.unsure{background:#eceff1;color:#455a64;border:2px dotted #90a4ae}.extra{background:#e6e0f5;color:#4a2f8a;text-decoration:line-through}
+.ok{background:#d9f2e3;color:#14532d}.close{background:#fff1b8;color:#7a5b00}.wrong{background:#ffd6d6;color:#8a1c1c}.missing{background:#fff;color:#8a1c1c;border:2px dashed #e88}.check{background:#e3f0ff;color:#0b4a8a;border:2px dotted #5b9bd5}.extra{background:#e6e0f5;color:#4a2f8a;text-decoration:line-through}
 .legend{font-size:12px;margin-top:8px;color:#456}.legend span{padding:1px 8px;border-radius:8px;margin:2px;display:inline-block}
 textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radius:10px;padding:8px;margin-top:6px}
 .warn{background:#fff3cd;border-radius:10px;padding:8px;font-size:13px;margin-top:10px}
@@ -29,7 +29,7 @@ textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radi
 <textarea id="ta" rows="2" placeholder="اكتب الآية كما قلتها"></textarea><br><button class="btn go" id="chk">راجع</button></details>
 </div>
 <div class="card" id="prog"></div>
-<div class="card small">هذه <b>مراجعة تقريبية للكلمات فقط</b> (هل قيلت كل كلمة؟). لا تفحص أحكام التجويد ولا مخارج الحروف ولا الحركات. قد يخطئ التعرف على الكلام، خصوصاً مع أصوات الأطفال والضوضاء. الحكم النهائي للمعلم.<br><br>
+<div class="card small">هذه <b>مساعد للمراجعة، وليس حَكَماً.</b> يشير فقط إلى كلمات قد تكون ناقصة أو مختلفة. لا يفحص الحركات ولا التجويد ولا مخارج الحروف. قد يخطئ التعرف على الكلام، خصوصاً مع أصوات الأطفال والضوضاء، وقد يفوته خطأ حقيقي. الحكم النهائي للمعلم.<br><br>
 نص القرآن: Tanzil Quran Text (CC BY 3.0)، tanzil.net، دون تعديل. نموذج أولي.</div>
 </div>
 <script>
@@ -70,7 +70,7 @@ $('bism').textContent=(sid!=='1'&&ai===0)?'بِسْمِ ٱللَّهِ ٱلرَ�
 $('prev').disabled=ai===0;$('next').disabled=ai===s.ayahs.length-1;$('res').innerHTML='';
 $('chips').innerHTML='';ids.forEach(k=>{const b=document.createElement('button');b.className='chip'+(k===sid?' on':'');b.textContent=QURAN[k].name.replace('سُورَةُ ','');b.onclick=()=>{sid=k;ai=0;draw()};$('chips').appendChild(b)})}
 $('prev').onclick=()=>{ai--;draw()};$('next').onclick=()=>{ai++;draw()};
-const LBL={ok:'صحيحة',unsure:'غير متأكد',wrong:'مختلفة',missing:'ناقصة',extra:'زائدة'};
+const LBL={ok:'تم التعرف عليها',check:'🎧 اسمع هنا'};
 
 // alts: [{t:text, c:confidence 0..1 or 0/undefined if unknown}] best first.
 // Never accuses unless: confidence known >= 0.9 AND every alternative agrees the word is not there.
@@ -95,8 +95,10 @@ function judge(ayah,alts,exact){
   return {items,ok:items.filter(x=>x.status==='ok').length,total:best.total,unsure:items.filter(x=>x.status==='unsure').length};
 }
 
-function score10(items,total,marked){let s=0,ex=0;items.forEach((x,i)=>{if(x.status==='extra'){ex++;return}if(marked&&marked.has(i))return;s+=x.status==='ok'?1:(x.status==='close'||x.status==='unsure')?0.5:0});
-return Math.max(0,Math.min(10,Math.round(total?10*s/total-1*ex:0)))}
+function collapse(r){const items=r.items.filter(x=>x.status!=='extra').map(x=>({...x,status:x.status==='ok'?'ok':'check'}));
+ return {items,ok:items.filter(x=>x.status==='ok').length,total:r.total,unsure:items.filter(x=>x.status==='check').length}}
+function score10(items,total,marked){let s=0,ex=0;items.forEach((x,i)=>{if(x.status==='extra'){ex++;return}if(marked&&marked.has(i))return;s+=x.status==='ok'?1:0.5});
+return Math.max(0,Math.min(10,Math.round(total?10*s/total:0)))}
 let cur=null,curUrl=null,curBlob=null;
 function setAudio(){const a=$('pa');if(a&&curUrl){a.src=curUrl;a.style.display='block';const n=$('pn');if(n)n.textContent=''}}
 function check(heard){show(judge(QURAN[sid].ayahs[ai],[{t:heard,c:1}],true),heard)}
@@ -104,14 +106,14 @@ const KEY='qr_progress_v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
 function save(o){try{localStorage.setItem(KEY,JSON.stringify(o));return true}catch(e){return false}}
 function rec_(upd){const o=load(),k=sid+':'+(ai+1);o[k]=Object.assign({tries:0},o[k],upd);save(o);prog()}
-function show(r,heard){cur={r,marked:new Set()};let h='<div class="small">سمعتُ: '+(heard||'(لا شيء)')+'</div><div style="margin-top:6px" id="words">';
+function show(r,heard){r=collapse(r);cur={r,marked:new Set()};let h='<div class="small">سمعتُ: '+(heard||'(لا شيء)')+'</div><div style="margin-top:6px" id="words">';
 r.items.forEach((x,i)=>{h+='<span class="w '+x.status+'" data-i="'+i+'">'+(x.ref||x.said)+'</span>'});
 const pct=r.total?Math.round(100*r.ok/r.total):0;
-h+='</div><div style="margin-top:8px"><div class="small">'+r.ok+' من '+r.total+' كلمات صحيحة</div><div style="font-size:30px;font-weight:bold" id="sc"></div><div class="small">الدرجة من 10 (مراجعة تقريبية للكلمات، تنخفض إذا علّم ولي الأمر أخطاء)</div></div>';
+h+='</div><div style="margin-top:8px"><div class="small">'+r.ok+' من '+r.total+' كلمات تم التعرف عليها</div><div style="font-size:30px;font-weight:bold" id="sc"></div><div class="small">تقدير تقريبي من 10 (للكلمات فقط، ويتغير إذا علّم ولي الأمر كلمة)</div></div>';
 h+='<div class="legend">'+Object.keys(LBL).map(k=>'<span class="'+k+'">'+LBL[k]+'</span>').join('')+'</div>';
-if(r.unsure)h+='<div class="warn">⚪ '+r.unsure+' كلمة "غير متأكد": قد يكون السبب أن التعرف على الصوت لم يلتقطها، وليس خطأ منك. اسمع التسجيل مع ولي الأمر.</div>';
-h+='<div class="small" style="margin-top:6px">مراجعة تقريبية للكلمات فقط، وليست تجويداً. التطبيق لا يتهم كلمة بالخطأ إلا إذا كان متأكداً.</div>';
-h+='<div class="pv"><b>👨‍👩‍👧 مراجعة ولي الأمر</b><div class="small">استمع للتسجيل، واضغط على أي كلمة لتعليمها كخطأ (اضغط مرة ثانية للإلغاء).</div>';
+if(r.unsure)h+='<div class="warn">🎧 '+r.unsure+' كلمة قد تحتاج استماعاً. قد تكون كلمة ناقصة أو مختلفة، وقد يكون السبب أن التعرف على الصوت لم يلتقطها. لا يمكن للتطبيق أن يحكم. اسمع هذا الموضع مع ولي الأمر.</div>';
+h+='<div class="small" style="margin-top:6px">التطبيق مساعد وليس حَكَماً: يشير فقط إلى مواضع قد تحتاج استماعاً (كلمة ناقصة أو مختلفة). لا يفحص الحركات ولا التجويد.</div>';
+h+='<div class="pv"><b>👨‍👩‍👧 مراجعة ولي الأمر</b><div class="small">استمع للتسجيل عند المواضع المشار إليها 🎧، واضغط على أي كلمة لتعليمها إذا سمعتَ فيها خطأً (اضغط مرة ثانية للإلغاء).</div>';
 h+='<audio controls id="pa" style="width:95%;margin:6px 0;display:none"></audio><div class="small" id="pn">'+(curUrl?'':'(جاري تجهيز التسجيل، أو لم يُحفظ تسجيل في هذه المحاولة)')+'</div>';
 h+='<div><button class="btn good" id="pg">✅ تلاوة جيدة</button> <button class="btn redo" id="pr">🔁 تحتاج إعادة</button></div><div class="small" id="pmsg"></div></div>';
 $('res').innerHTML=h;setAudio();
@@ -132,7 +134,7 @@ h+='<div style="margin-top:8px"><button class="btn" id="clr">مسح التقدم
 $('prog').innerHTML=h;if($('clr'))$('clr').onclick=()=>{if($('clr').dataset.s){try{localStorage.removeItem(KEY)}catch(e){}prog()}else{$('clr').dataset.s=1;$('clr').textContent='اضغط مرة أخرى للتأكيد'}}}
 $('chk').onclick=()=>{curUrl=null;check($('ta').value)};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=true,restarts=0,lastRes=0,fatal=false;
-$('warn').textContent=SR?'ملاحظة: التعرف على الكلام في المتصفح قد يُرسل الصوت إلى خدمة المتصفح (Google أو Apple) لتحويله إلى نص. التطبيق نفسه لا يحفظ ولا يرسل أي تسجيل.':'متصفحك لا يدعم التعرف على الكلام. جرّب Chrome على أندرويد أو Safari على آيفون، أو اكتب ما قلته في الخانة بالأسفل.';
+$('warn').textContent=SR?'الخصوصية: أثناء الاستماع، قد يُرسل المتصفح الصوت إلى Google (كروم) أو Apple (سفاري) لتحويله إلى نص. التطبيق نفسه لا يحفظ التسجيل ولا يرسله لأي مكان، والتسجيل يبقى على جهازك.':'متصفحك لا يدعم التعرف على الكلام. جرّب Chrome على أندرويد أو Safari على آيفون، أو اكتب ما قلته في الخانة بالأسفل.';
 let mrec=null,chunks=[],stream=null;
 function stopRec(){try{if(mrec&&mrec.state!=='inactive')mrec.stop()}catch(e){}}
 async function startRec(){curUrl=null;chunks=[];mrec=null;if(!useRec)return;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});mrec=new MediaRecorder(stream);mrec.ondataavailable=e=>chunks.push(e.data);mrec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());if(chunks.length){curBlob=new Blob(chunks,{type:mrec.mimeType});curUrl=URL.createObjectURL(curBlob);setAudio()}};mrec.start()}catch(e){mrec=null;$('ms').textContent='لا يمكن التسجيل مع التعرف ('+e.name+'). سأستمع بدون تسجيل.'}}

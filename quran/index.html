@@ -22,7 +22,7 @@ textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radi
 <div class="card"><div class="small" id="info"></div><div class="small" id="bism"></div>
 <div class="aya" id="aya"></div>
 <div><button class="btn" id="prev">السابقة</button> <button class="btn" id="next">التالية</button></div>
-<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
+<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="au" checked> تقدّم تلقائي بين الآيات: اضغط الميكروفون مرة واحدة واقرأ، وتظهر المراجعة في النهاية</label><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
 <div id="res" style="margin-top:10px"></div>
 <div class="warn" id="warn"></div>
 <details style="margin-top:10px"><summary class="small">لا يعمل الميكروفون؟ اكتب ما قلته</summary>
@@ -132,13 +132,39 @@ if(wl.length)h+='<div class="small" style="margin-top:8px">كلمات علّمه
 h+='<div style="margin-top:8px"><button class="btn" id="clr">مسح التقدم</button></div>'}
 $('prog').innerHTML=h;if($('clr'))$('clr').onclick=()=>{if($('clr').dataset.s){try{localStorage.removeItem(KEY)}catch(e){}prog()}else{$('clr').dataset.s=1;$('clr').textContent='اضغط مرة أخرى للتأكيد'}}}
 $('chk').onclick=()=>{curUrl=null;check($('ta').value)};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=false,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=false,auto=true,s0=0,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
 $('warn').textContent=SR?'الخصوصية: أثناء الاستماع، قد يُرسل المتصفح الصوت إلى Google (كروم) أو Apple (سفاري) لتحويله إلى نص. التطبيق نفسه لا يحفظ التسجيل ولا يرسله لأي مكان، والتسجيل يبقى على جهازك.':'متصفحك لا يدعم التعرف على الكلام. جرّب Chrome على أندرويد أو Safari على آيفون، أو اكتب ما قلته في الخانة بالأسفل.';
 let mrec=null,chunks=[],stream=null;
 function stopRec(){try{if(mrec&&mrec.state!=='inactive')mrec.stop()}catch(e){}}
 async function startRec(){curUrl=null;chunks=[];mrec=null;if(!useRec)return;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});mrec=new MediaRecorder(stream);mrec.ondataavailable=e=>chunks.push(e.data);mrec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());if(chunks.length){curBlob=new Blob(chunks,{type:mrec.mimeType});curUrl=URL.createObjectURL(curBlob);setAudio()}};mrec.start()}catch(e){mrec=null;$('ms').textContent='لا يمكن التسجيل مع التعرف ('+e.name+'). سأستمع بدون تسجيل.'}}
+
+function build(k0){const S=QURAN[sid];const words=[],map=[];
+ if(k0===0&&sid!=='1')'بسم الله الرحمن الرحيم'.split(' ').forEach(w=>{words.push(w);map.push(-1)});
+ for(let k=k0;k<S.ayahs.length;k++)normAr(S.ayahs[k]).split(' ').filter(Boolean).forEach(w=>{words.push(w);map.push(k)});
+ return {words,map}}
+function align(text){const B=build(s0);return {r:compare(B.words.join(' '),text),B}}
+function lastOk(a){let m=-1;a.r.items.forEach(x=>{if(x.status==='ok'&&x.idx>=0&&a.B.map[x.idx]>=0)m=Math.max(m,x.idx)});return m}
+function live(text){const a=align(text),m=lastOk(a);if(m<0)return;let k=a.B.map[m];if(a.B.map[m+1]!==k&&k+1<QURAN[sid].ayahs.length)k++;if(k>ai){ai=k;draw()}}
+let summ=null;
+function finishAuto(){const text=fullText();
+ if(!text){$('ms').textContent='لم أسمع شيئاً. اضغط على الميكروفون وحاول مرة أخرى. (بدء:'+nStart+'، خطأ: '+(lastErr||'لا يوجد')+')';return}
+ const a=align(text),m=lastOk(a);
+ if(m<0){$('ms').textContent='لم أستطع مطابقة كلمات الآية. اضغط على الميكروفون وحاول مرة أخرى.';$('res').innerHTML='<div class="small">سمعتُ: '+text+'</div>';return}
+ const last=a.B.map[m],S=QURAN[sid];summ={rows:[],last,text};
+ for(let k=s0;k<=last;k++){const items=a.r.items.filter(x=>x.idx>=0&&a.B.map[x.idx]===k);const total=items.length;
+  const rr=collapse({items,total});const sc=score10(rr.items,total,null);
+  summ.rows.push({k,rr,sc,total});
+  const o=load(),key=sid+':'+(k+1);o[key]=Object.assign({tries:0},o[key],{tries:(o[key]&&o[key].tries||0)+1,auto:total?Math.round(100*rr.ok/total):0,score:sc});save(o)}
+ prog();$('ms').textContent='تم. هذا ملخص التلاوة.';renderSumm()}
+function renderSumm(){const S=QURAN[sid];let h='<div class="small">سمعتُ: '+summ.text+'</div><div style="margin:8px 0"><b>ملخص التلاوة</b>: من الآية '+(summ.rows[0].k+1)+' إلى الآية '+(summ.last+1)+'</div>';
+ summ.rows.forEach((x,i)=>{h+='<div class="card" style="margin:6px 0;padding:10px"><div class="small">الآية '+(x.k+1)+' • '+x.rr.ok+' من '+x.total+' كلمات تم التعرف عليها • تقدير تقريبي '+x.sc+' من 10</div><div>'+x.rr.items.map(w=>'<span class="w '+w.status+'">'+w.ref+'</span>').join('')+'</div><button class="btn" data-i="'+i+'">👨‍👩‍👧 مراجعة ولي الأمر</button></div>'});
+ if(summ.last<S.ayahs.length-1)h+='<div class="small">توقفت القراءة عند الآية '+(summ.last+1)+'. الآيات التالية لم تُقرأ ولم تُحتسب. قد يكون السبب أيضاً أن التعرف على الصوت لم يلتقطها.</div>';
+ h+='<div class="small" style="margin-top:6px">التطبيق مساعد وليس حَكَماً: 🎧 يعني كلمة قد تحتاج استماعاً، وقد تكون ناقصة أو مختلفة أو لم يلتقطها التعرف.</div>';
+ $('res').innerHTML=h;
+ document.querySelectorAll('#res button[data-i]').forEach(b=>b.onclick=()=>{const x=summ.rows[+b.dataset.i];ai=x.k;draw();show({items:x.rr.items,ok:x.rr.ok,total:x.total,unsure:x.rr.unsure},summ.text);
+  const bb=document.createElement('button');bb.className='btn';bb.textContent='◀ العودة إلى الملخص';bb.onclick=()=>renderSumm();$('res').insertBefore(bb,$('res').firstChild)})}
 function fullText(){return segs.map(s=>s[0].t).join(' ').trim()}
-function finish(){stopRec();on=false;$('mic').classList.remove('on');
+function finish(){stopRec();on=false;$('mic').classList.remove('on');if(auto&&summ!==undefined&&auto===true&&s0!==null)return finishAuto();
  if(!segs.length){$('ms').textContent='لم أسمع شيئاً. اضغط على الميكروفون وحاول مرة أخرى. (بدء:'+nStart+'، خطأ: '+(lastErr||'لا يوجد')+')';return}
  const ref=QURAN[sid].ayahs[ai];const n=Math.max(...segs.map(s=>s.length));
  const alts=[];for(let k=0;k<n;k++)alts.push({t:segs.map(s=>(s[k]||s[0]).t).join(' '),c:Math.min(...segs.map(s=>(s[k]||s[0]).c||0))});
@@ -149,7 +175,7 @@ function begin(){
  rec.onresult=ev=>{lastRes=Date.now();let interim='';
   for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];
    if(r.isFinal){segs.push([...r].map(a=>({t:a.transcript,c:a.confidence})))}else interim+=r[0].transcript+' '}
-  $('ms').textContent='سمعتُ: '+(fullText()+' '+interim).trim()};
+  $('ms').textContent='سمعتُ: '+(fullText()+' '+interim).trim();if(auto)live((fullText()+' '+interim).trim())};
  rec.onerror=e=>{const er=e.error;lastErr=er;
   if(er==='no-speech'||er==='aborted')return; // not fatal: onend will restart while user has not stopped
   fatal=true;userStop=true;
@@ -165,7 +191,7 @@ function begin(){
 $('mic').onclick=()=>{
  if(!SR){$('ms').textContent='التعرف على الكلام غير متاح في هذا المتصفح. استخدم الكتابة بالأسفل.';return}
  if(on){userStop=true;$('ms').textContent='جاري إنهاء المراجعة...';try{rec.stop()}catch(e){finish()};return}
- useRec=$('rc').checked;userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
+ useRec=$('rc').checked;auto=$('au').checked;s0=ai;summ=null;userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
  curUrl=null;chunks=[];mrec=null;try{begin()}catch(e){$('ms').textContent='تعذر البدء: '+e.name}};
 draw();prog();
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}

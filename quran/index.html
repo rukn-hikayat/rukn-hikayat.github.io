@@ -133,30 +133,31 @@ if(wl.length)h+='<div class="small" style="margin-top:8px">كلمات علّمه
 h+='<div style="margin-top:8px"><button class="btn" id="clr">مسح التقدم</button></div>'}
 $('prog').innerHTML=h;if($('clr'))$('clr').onclick=()=>{if($('clr').dataset.s){try{localStorage.removeItem(KEY)}catch(e){}prog()}else{$('clr').dataset.s=1;$('clr').textContent='اضغط مرة أخرى للتأكيد'}}}
 $('chk').onclick=()=>{curUrl=null;check($('ta').value)};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=true,restarts=0,lastRes=0,fatal=false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=true,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
 $('warn').textContent=SR?'الخصوصية: أثناء الاستماع، قد يُرسل المتصفح الصوت إلى Google (كروم) أو Apple (سفاري) لتحويله إلى نص. التطبيق نفسه لا يحفظ التسجيل ولا يرسله لأي مكان، والتسجيل يبقى على جهازك.':'متصفحك لا يدعم التعرف على الكلام. جرّب Chrome على أندرويد أو Safari على آيفون، أو اكتب ما قلته في الخانة بالأسفل.';
 let mrec=null,chunks=[],stream=null;
 function stopRec(){try{if(mrec&&mrec.state!=='inactive')mrec.stop()}catch(e){}}
 async function startRec(){curUrl=null;chunks=[];mrec=null;if(!useRec)return;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});mrec=new MediaRecorder(stream);mrec.ondataavailable=e=>chunks.push(e.data);mrec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());if(chunks.length){curBlob=new Blob(chunks,{type:mrec.mimeType});curUrl=URL.createObjectURL(curBlob);setAudio()}};mrec.start()}catch(e){mrec=null;$('ms').textContent='لا يمكن التسجيل مع التعرف ('+e.name+'). سأستمع بدون تسجيل.'}}
 function fullText(){return segs.map(s=>s[0].t).join(' ').trim()}
 function finish(){stopRec();on=false;$('mic').classList.remove('on');
- if(!segs.length){$('ms').textContent='لم أسمع شيئاً. اضغط على الميكروفون وحاول مرة أخرى.';return}
+ if(!segs.length){$('ms').textContent='لم أسمع شيئاً. اضغط على الميكروفون وحاول مرة أخرى. (بدء:'+nStart+'، خطأ: '+(lastErr||'لا يوجد')+')';return}
  const ref=QURAN[sid].ayahs[ai];const n=Math.max(...segs.map(s=>s.length));
  const alts=[];for(let k=0;k<n;k++)alts.push({t:segs.map(s=>(s[k]||s[0]).t).join(' '),c:Math.min(...segs.map(s=>(s[k]||s[0]).c||0))});
  $('ms').textContent='تم. اضغط على الميكروفون لمحاولة جديدة.';show(judge(ref,alts,false),alts[0].t)}
 function begin(){
- rec=new SR();rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=5;
- rec.onstart=()=>{if(!on&&useRec&&!mrec)startRec();on=true;$('mic').classList.add('on');if(!fatal)$('ms').textContent='جاري الاستماع... اقرأ الآية كاملة، ثم اضغط على الميكروفون للإيقاف'};
+ rec=new SR();rec.lang='ar-SA';rec.continuous=cont;rec.interimResults=true;rec.maxAlternatives=5;
+ rec.onstart=()=>{t0=Date.now();nStart++;if(!on&&useRec&&!mrec)startRec();on=true;$('mic').classList.add('on');if(!fatal)$('ms').textContent='جاري الاستماع... اقرأ الآية كاملة، ثم اضغط على الميكروفون للإيقاف'};
  rec.onresult=ev=>{lastRes=Date.now();let interim='';
   for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];
    if(r.isFinal){segs.push([...r].map(a=>({t:a.transcript,c:a.confidence})))}else interim+=r[0].transcript+' '}
   $('ms').textContent='سمعتُ: '+(fullText()+' '+interim).trim()};
- rec.onerror=e=>{const er=e.error;
+ rec.onerror=e=>{const er=e.error;lastErr=er;
   if(er==='no-speech'||er==='aborted')return; // not fatal: onend will restart while user has not stopped
   fatal=true;userStop=true;
   if(er==='audio-capture'&&mrec&&useRec){useRec=false;fatal=false;userStop=false;stopRec();$('ms').textContent='خطأ: '+er+' (ربما التسجيل والتعرف معاً). أعيد المحاولة بدون تسجيل...';return}
   $('ms').textContent='خطأ في التعرف على الكلام: '+er+(er==='not-allowed'||er==='service-not-allowed'?' (اسمح بالميكروفون من إعدادات المتصفح)':er==='network'?' (يحتاج إنترنت)':'')+'. يمكنك الكتابة بالأسفل.'};
  rec.onend=()=>{
+  if(!userStop&&!segs.length&&Date.now()-t0<1500){quick++;if(quick>=3){if(cont){cont=false;quick=0;begin();return}userStop=true;$('ms').textContent='المتصفح أغلق الاستماع فوراً. (بدء:'+nStart+'، خطأ: '+(lastErr||'لا يوجد')+'). جرّب Chrome، أو اكتب ما قلته بالأسفل.';stopRec();on=false;$('mic').classList.remove('on');return}}
   if(!userStop&&restarts<40){restarts++;try{begin_();return}catch(e){}}
   if(fatal&&!segs.length){stopRec();on=false;$('mic').classList.remove('on');return}
   finish()};
@@ -165,7 +166,7 @@ function begin(){
 $('mic').onclick=()=>{
  if(!SR){$('ms').textContent='التعرف على الكلام غير متاح في هذا المتصفح. استخدم الكتابة بالأسفل.';return}
  if(on){userStop=true;$('ms').textContent='جاري إنهاء المراجعة...';try{rec.stop()}catch(e){finish()};return}
- userStop=false;fatal=false;segs=[];restarts=0;$('res').innerHTML='';
+ userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
  curUrl=null;chunks=[];mrec=null;try{begin()}catch(e){$('ms').textContent='تعذر البدء: '+e.name}};
 draw();prog();
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}

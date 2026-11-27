@@ -146,7 +146,7 @@ function finish(){stopRec();on=false;$('mic').classList.remove('on');
  $('ms').textContent='تم. اضغط على الميكروفون لمحاولة جديدة.';show(judge(ref,alts,false),alts[0].t)}
 function begin(){
  rec=new SR();rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=5;
- rec.onstart=()=>{on=true;$('mic').classList.add('on');if(!fatal)$('ms').textContent='جاري الاستماع... اقرأ الآية كاملة، ثم اضغط على الميكروفون للإيقاف'};
+ rec.onstart=()=>{if(!on&&useRec&&!mrec)startRec();on=true;$('mic').classList.add('on');if(!fatal)$('ms').textContent='جاري الاستماع... اقرأ الآية كاملة، ثم اضغط على الميكروفون للإيقاف'};
  rec.onresult=ev=>{lastRes=Date.now();let interim='';
   for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];
    if(r.isFinal){segs.push([...r].map(a=>({t:a.transcript,c:a.confidence})))}else interim+=r[0].transcript+' '}
@@ -162,11 +162,11 @@ function begin(){
   finish()};
  function begin_(){rec.start()}
  try{rec.start()}catch(e){$('ms').textContent='تعذر البدء: '+e.name+' '+e.message}}
-$('mic').onclick=async()=>{
+$('mic').onclick=()=>{
  if(!SR){$('ms').textContent='التعرف على الكلام غير متاح في هذا المتصفح. استخدم الكتابة بالأسفل.';return}
  if(on){userStop=true;$('ms').textContent='جاري إنهاء المراجعة...';try{rec.stop()}catch(e){finish()};return}
  userStop=false;fatal=false;segs=[];restarts=0;$('res').innerHTML='';
- await startRec();begin()};
+ curUrl=null;chunks=[];mrec=null;try{begin()}catch(e){$('ms').textContent='تعذر البدء: '+e.name}};
 draw();prog();
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}
 </script></body></html>

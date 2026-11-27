@@ -11,7 +11,7 @@ body{margin:0;font-family:'Noto Sans Arabic',system-ui,sans-serif;background:#f4
 .aya{font-family:'Noto Naskh Arabic','Noto Sans Arabic',serif;font-size:34px;line-height:2.1;margin:6px 0}
 .small{font-size:13px;color:#678}.mic{width:84px;height:84px;border-radius:50%;background:#e8505b;color:#fff;font-size:38px;line-height:84px;margin:10px auto;box-shadow:0 4px 0 #b83a44;cursor:pointer;border:0;display:block}
 .mic.on{background:#b00020}.w{display:inline-block;margin:3px 4px;padding:2px 10px;border-radius:10px;font-family:'Noto Naskh Arabic',serif;font-size:28px}
-.ok{background:#d9f2e3;color:#14532d}.close{background:#fff1b8;color:#7a5b00}.wrong{background:#ffd6d6;color:#8a1c1c}.missing{background:#fff;color:#8a1c1c;border:2px dashed #e88}.extra{background:#e6e0f5;color:#4a2f8a;text-decoration:line-through}
+.ok{background:#d9f2e3;color:#14532d}.close{background:#fff1b8;color:#7a5b00}.wrong{background:#ffd6d6;color:#8a1c1c}.missing{background:#fff;color:#8a1c1c;border:2px dashed #e88}.unsure{background:#eceff1;color:#455a64;border:2px dotted #90a4ae}.extra{background:#e6e0f5;color:#4a2f8a;text-decoration:line-through}
 .legend{font-size:12px;margin-top:8px;color:#456}.legend span{padding:1px 8px;border-radius:8px;margin:2px;display:inline-block}
 textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radius:10px;padding:8px;margin-top:6px}
 .warn{background:#fff3cd;border-radius:10px;padding:8px;font-size:13px;margin-top:10px}
@@ -70,12 +70,36 @@ $('bism').textContent=(sid!=='1'&&ai===0)?'بِسْمِ ٱللَّهِ ٱلرَ�
 $('prev').disabled=ai===0;$('next').disabled=ai===s.ayahs.length-1;$('res').innerHTML='';
 $('chips').innerHTML='';ids.forEach(k=>{const b=document.createElement('button');b.className='chip'+(k===sid?' on':'');b.textContent=QURAN[k].name.replace('سُورَةُ ','');b.onclick=()=>{sid=k;ai=0;draw()};$('chips').appendChild(b)})}
 $('prev').onclick=()=>{ai--;draw()};$('next').onclick=()=>{ai++;draw()};
-const LBL={ok:'صحيحة',close:'قريبة',wrong:'مختلفة',missing:'ناقصة',extra:'زائدة'};
-function score10(items,total,marked){let s=0,ex=0;items.forEach((x,i)=>{if(x.status==='extra'){ex++;return}if(marked&&marked.has(i))return;s+=x.status==='ok'?1:x.status==='close'?0.5:0});
+const LBL={ok:'صحيحة',unsure:'غير متأكد',wrong:'مختلفة',missing:'ناقصة',extra:'زائدة'};
+
+// alts: [{t:text, c:confidence 0..1 or 0/undefined if unknown}] best first.
+// Never accuses unless: confidence known >= 0.9 AND every alternative agrees the word is not there.
+function judge(ayah,alts,exact){
+  const rs=alts.map(a=>compare(ayah,a.t));
+  const best=rs[0];
+  const conf=alts[0].c||0;
+  const sure=exact||(conf>=0.9&&alts.length>=2);
+  const items=best.items.map(x=>({...x}));
+  items.forEach(x=>{
+    if(x.status==='ok')return;
+    if(x.status==='extra'){
+      const inAll=rs.every(r=>r.items.some(y=>y.status==='extra'&&y.said===x.said));
+      x.status=(sure&&inAll)?'extra':'unsure';return}
+    // ref word: found OK in another alternative?
+    const okElsewhere=rs.some(r=>r.items.some(y=>y.idx===x.idx&&y.status==='ok'));
+    if(okElsewhere){x.status='unsure';return}
+    const allAgree=rs.every(r=>r.items.some(y=>y.idx===x.idx&&y.status===x.status));
+    if(x.status==='close'){x.status='unsure';return}
+    x.status=(sure&&allAgree)?x.status:'unsure';
+  });
+  return {items,ok:items.filter(x=>x.status==='ok').length,total:best.total,unsure:items.filter(x=>x.status==='unsure').length};
+}
+
+function score10(items,total,marked){let s=0,ex=0;items.forEach((x,i)=>{if(x.status==='extra'){ex++;return}if(marked&&marked.has(i))return;s+=x.status==='ok'?1:(x.status==='close'||x.status==='unsure')?0.5:0});
 return Math.max(0,Math.min(10,Math.round(total?10*s/total-1*ex:0)))}
 let cur=null,curUrl=null,curBlob=null;
 function setAudio(){const a=$('pa');if(a&&curUrl){a.src=curUrl;a.style.display='block';const n=$('pn');if(n)n.textContent=''}}
-function check(heard){const r=compare(QURAN[sid].ayahs[ai],heard);show(r,heard)}
+function check(heard){show(judge(QURAN[sid].ayahs[ai],[{t:heard,c:1}],true),heard)}
 const KEY='qr_progress_v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
 function save(o){try{localStorage.setItem(KEY,JSON.stringify(o));return true}catch(e){return false}}
@@ -85,7 +109,8 @@ r.items.forEach((x,i)=>{h+='<span class="w '+x.status+'" data-i="'+i+'">'+(x.ref
 const pct=r.total?Math.round(100*r.ok/r.total):0;
 h+='</div><div style="margin-top:8px"><div class="small">'+r.ok+' من '+r.total+' كلمات صحيحة</div><div style="font-size:30px;font-weight:bold" id="sc"></div><div class="small">الدرجة من 10 (مراجعة تقريبية للكلمات، تنخفض إذا علّم ولي الأمر أخطاء)</div></div>';
 h+='<div class="legend">'+Object.keys(LBL).map(k=>'<span class="'+k+'">'+LBL[k]+'</span>').join('')+'</div>';
-h+='<div class="small" style="margin-top:6px">مراجعة تقريبية للكلمات فقط، وليست تجويداً.</div>';
+if(r.unsure)h+='<div class="warn">⚪ '+r.unsure+' كلمة "غير متأكد": قد يكون السبب أن التعرف على الصوت لم يلتقطها، وليس خطأ منك. اسمع التسجيل مع ولي الأمر.</div>';
+h+='<div class="small" style="margin-top:6px">مراجعة تقريبية للكلمات فقط، وليست تجويداً. التطبيق لا يتهم كلمة بالخطأ إلا إذا كان متأكداً.</div>';
 h+='<div class="pv"><b>👨‍👩‍👧 مراجعة ولي الأمر</b><div class="small">استمع للتسجيل، واضغط على أي كلمة لتعليمها كخطأ (اضغط مرة ثانية للإلغاء).</div>';
 h+='<audio controls id="pa" style="width:95%;margin:6px 0;display:none"></audio><div class="small" id="pn">'+(curUrl?'':'(جاري تجهيز التسجيل، أو لم يُحفظ تسجيل في هذه المحاولة)')+'</div>';
 h+='<div><button class="btn good" id="pg">✅ تلاوة جيدة</button> <button class="btn redo" id="pr">🔁 تحتاج إعادة</button></div><div class="small" id="pmsg"></div></div>';
@@ -118,9 +143,8 @@ $('mic').onclick=async()=>{
  rec.onstart=()=>{on=true;$('mic').classList.add('on');$('ms').textContent='جاري الاستماع... قل الآية ثم اصمت'};
  rec.onerror=e=>{$('ms').textContent=e.error==='not-allowed'?'لم يُسمح بالميكروفون. اسمح به من إعدادات المتصفح.':e.error==='no-speech'?'لم أسمع شيئاً. حاول مرة أخرى.':'تعذر التعرف على الكلام ('+e.error+'). جرّب الكتابة بالأسفل.'};
  rec.onend=()=>{stopRec();on=false;$('mic').classList.remove('on');if($('ms').textContent.startsWith('جاري'))$('ms').textContent='انتهى. اضغط للمحاولة مرة أخرى'};
- rec.onresult=ev=>{stopRec();const ref=QURAN[sid].ayahs[ai];let best=null,bt='';
-  for(const alt of ev.results[0]){const r=compare(ref,alt.transcript);if(!best||r.ok>best.ok){best=r;bt=alt.transcript}}
-  $('ms').textContent='تم';show(best,bt)};
+ rec.onresult=ev=>{stopRec();const ref=QURAN[sid].ayahs[ai];const alts=[...ev.results[0]].map(a=>({t:a.transcript,c:a.confidence}));
+  $('ms').textContent='تم';show(judge(ref,alts,false),alts[0].t)};
  try{rec.start()}catch(e){$('ms').textContent='تعذر البدء: '+e.message}};
 draw();prog();
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}

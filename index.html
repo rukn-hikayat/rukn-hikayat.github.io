@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-hatch-color-scheme="light" data-hatch-accent="blue"><head><style>html img,html video,html canvas{height:revert-layer}</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="صفحة واحدة تجمع مشاريع الأطفال: قناة Al Videos للقصص على يوتيوب، وحساب تيك توك، وكتب تلوين ومتجر قادمان قريبًا.">
+    <link rel="icon" href="data:,">
+    <title>ركن الحكايات والمرح</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&amp;family=Rubik:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fff6ec;
+        --surface: #fffdf9;
+        --surface-2: #ffeedd;
+        --ink: #3d2b23;
+        --ink-soft: #6f574c;
+        --line: #f0dcc8;
+        --coral: #e4572e;
+        --coral-deep: #c7431f;
+        --coral-soft: #ffe3d3;
+        --sun: #f2a007;
+        --sun-soft: #ffedbe;
+        --teal: #0e7c7b;
+        --teal-deep: #0a5f5e;
+        --teal-soft: #d7efec;
+        --sky: #2b7fb8;
+        --sky-soft: #dceffa;
+        --youtube: #d92c1f;
+        --youtube-deep: #b71f14;
+        --tiktok-ink: #221d26;
+        --shadow: 0 10px 28px rgba(122, 66, 32, 0.13);
+        --shadow-sm: 0 4px 14px rgba(122, 66, 32, 0.1);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --bg: #211713;
+          --surface: #2d201b;
+          --surface-2: #382720;
+          --ink: #f7e9dc;
+          --ink-soft: #cdb2a2;
+          --line: #4a342a;
+          --coral: #ff8a5f;
+          --coral-deep: #ffa582;
+          --coral-soft: #472a20;
+          --sun: #ffc44d;
+          --sun-soft: #453311;
+          --teal: #4ecdc4;
+          --teal-deep: #7fe0d8;
+          --teal-soft: #173936;
+          --sky: #6db9e8;
+          --sky-soft: #1d3448;
+          --youtube: #ff6b5e;
+          --youtube-deep: #ff8d84;
+          --tiktok-ink: #f2ecf5;
+          --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+          --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Rubik", "Segoe UI", Tahoma, sans-serif;
+        font-size: 1.0625rem;
+        line-height: 1.85;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1, h2, h3 {
+        font-family: "Baloo Bhaijaan 2", "Rubik", sans-serif;
+        line-height: 1.35;
+        margin: 0;
+      }
+      p { margin: 0; }
+      img { max-width: 100%; display: block; }
+      a { color: var(--teal-deep); }
+
+      .wrap {
+        max-width: 68rem;
+        margin-inline: auto;
+        padding-inline: 1.25rem;
+      }
+
+      /* ---------- draft ribbon ---------- */
+      .draft-bar {
+        background: var(--tiktok-ink);
+        color: #fdf6ee;
+        text-align: center;
+        font-size: 0.92rem;
+        font-weight: 500;
+        padding: 0.55rem 1rem;
+      }
+      @media (prefers-color-scheme: dark) {
+        .draft-bar { background: #17110d; color: #f7e9dc; }
+      }
+      .draft-bar strong { color: var(--sun); font-weight: 600; }
+
+      /* ---------- hero ---------- */
+      .hero {
+        padding: 2.75rem 0 0;
+        text-align: center;
+      }
+      .hero-badge {
+        display: inline-block;
+        background: var(--sun-soft);
+        color: var(--ink);
+        border: 1.5px dashed var(--sun);
+        border-radius: 999px;
+        padding: 0.3rem 1.1rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+      .hero h1 {
+        font-size: clamp(2.4rem, 7vw, 4rem);
+        font-weight: 800;
+        margin-top: 1rem;
+      }
+      .hero h1 .accent-coral { color: var(--coral); }
+      .hero h1 .accent-teal { color: var(--teal); }
+      .hero .lede {
+        max-width: 38rem;
+        margin: 1rem auto 0;
+        color: var(--ink-soft);
+        font-size: 1.13rem;
+      }
+      .hero-art {
+        margin: 2rem auto 0;
+        max-width: 56rem;
+        border-radius: 2rem;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 3px solid var(--surface);
+      }
+      .hero-art img { width: 100%; height: auto; }
+
+      .hero-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.6rem;
+        margin-top: 1.75rem;
+      }
+      .hero-nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0.45rem 1.3rem;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        box-shadow: var(--shadow-sm);
+        color: var(--ink);
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.15s ease, border-color 0.15s ease;
+      }
+      .hero-nav a:hover { transform: translateY(-2px); border-color: var(--sun); }
+
+      /* ---------- sections ---------- */
+      section { padding: 3.25rem 0 0; }
+      .section-head { text-align: center; max-width: 40rem; margin-inline: auto; }
+      .section-head h2 { font-size: clamp(1.7rem, 4.5vw, 2.3rem); font-weight: 700; }
+      .section-head p { color: var(--ink-soft); margin-top: 0.5rem; }
+
+      /* ---------- watch cards ---------- */
+      .watch-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-top: 2rem;
+      }
+      @media (max-width: 44rem) {
+        .watch-grid { grid-template-columns: 1fr; }
+      }
+      .watch-card {
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        border-radius: 1.6rem;
+        padding: 1.9rem 1.75rem;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+      }
+      .watch-card .icon-badge {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 1.2rem;
+        display: grid;
+        place-items: center;
+      }
+      .watch-card .icon-badge svg { width: 2.1rem; height: 2.1rem; }
+      .badge-youtube { background: #ffe1dc; }
+      .badge-tiktok { background: #e9e4f2; }
+      @media (prefers-color-scheme: dark) {
+        .badge-youtube { background: #4a211c; }
+        .badge-tiktok { background: #37304a; }
+      }
+      .watch-card h3 { font-size: 1.55rem; font-weight: 700; }
+      .watch-card .handle {
+        direction: ltr;
+        unicode-bidi: isolate;
+        font-weight: 600;
+        color: var(--ink-soft);
+        font-size: 1rem;
+      }
+      .watch-card p.desc { color: var(--ink-soft); flex: 1; }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 3.1rem;
+        padding: 0.6rem 1.6rem;
+        border-radius: 999px;
+        font-family: inherit;
+        font-size: 1.05rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.15s ease, background 0.15s ease;
+        align-self: flex-start;
+      }
+      .btn:hover { transform: translateY(-2px); }
+      .btn-youtube { background: var(--youtube); color: #fff; }
+      .btn-youtube:hover { background: var(--youtube-deep); }
+      @media (prefers-color-scheme: dark) {
+        .btn-youtube { color: #2b0f0c; }
+      }
+      .btn-tiktok { background: var(--tiktok-ink); color: #fdf6ee; }
+      @media (prefers-color-scheme: dark) {
+        .btn-tiktok { background: #f2ecf5; color: #221d26; }
+      }
+      .btn .arrow { font-size: 1.15em; line-height: 1; }
+
+      /* ---------- coming soon panels ---------- */
+      .soon-panel {
+        margin-top: 2rem;
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        border-radius: 1.8rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      .soon-panel.flip .soon-art { order: 2; }
+      @media (max-width: 44rem) {
+        .soon-panel { grid-template-columns: 1fr; }
+        .soon-panel.flip .soon-art { order: 0; }
+      }
+      .soon-art img { width: 100%; height: 100%; object-fit: cover; }
+      .soon-body {
+        padding: 2.25rem 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+      .soon-tag {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        padding: 0.3rem 1.05rem;
+        font-weight: 700;
+        font-size: 0.98rem;
+      }
+      .soon-tag .dot {
+        width: 0.55rem; height: 0.55rem; border-radius: 50%;
+        background: currentColor;
+      }
+      .tag-books { background: var(--teal-soft); color: var(--teal-deep); }
+      .tag-store { background: var(--sun-soft); color: var(--ink); }
+      .soon-body h3 { font-size: 1.7rem; font-weight: 700; }
+      .soon-body p { color: var(--ink-soft); }
+      .soon-list {
+        list-style: none;
+        margin: 0.35rem 0 0;
+        padding: 0;
+        display: grid;
+        gap: 0.45rem;
+      }
+      .soon-list li {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        color: var(--ink);
+      }
+      .soon-list .tick {
+        flex: none;
+        width: 1.35rem; height: 1.35rem;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        transform: translateY(0.3rem);
+      }
+      .tick-books { background: var(--teal-soft); color: var(--teal-deep); }
+      .tick-store { background: var(--coral-soft); color: var(--coral-deep); }
+      .soon-list .tick svg { width: 0.8rem; height: 0.8rem; }
+
+      /* ---------- hosting note ---------- */
+      .hosting {
+        margin-top: 3.25rem;
+        background: var(--surface-2);
+        border: 1.5px dashed var(--sun);
+        border-radius: 1.6rem;
+        padding: 1.9rem 2rem;
+      }
+      .hosting h2 { font-size: 1.5rem; font-weight: 700; }
+      .hosting p { color: var(--ink-soft); margin-top: 0.55rem; max-width: 46rem; }
+      .hosting p strong { color: var(--ink); }
+      .hosting .ltr { direction: ltr; unicode-bidi: isolate; }
+
+      /* ---------- footer ---------- */
+      footer {
+        margin-top: 3.5rem;
+        border-top: 1.5px solid var(--line);
+        padding: 1.75rem 0 2.5rem;
+        text-align: center;
+        color: var(--ink-soft);
+        font-size: 0.98rem;
+      }
+      footer .foot-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem 1.75rem;
+        margin-bottom: 0.75rem;
+      }
+      footer .foot-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.25rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      footer .foot-links a:hover { text-decoration: underline; }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        * { transition: none !important; }
+      }
+    </style>
+    <style data-hatch-cvm-bundle="" nonce=""></style>
+</head>
+  <body>
+    
+
+    <main class="wrap">
+      <!-- ===== Hero ===== -->
+      <header class="hero">
+        <h1>ركن <span class="accent-coral">الحكايات</span> <span class="accent-teal">والمرح</span></h1>
+        <p class="lede">
+          أهلًا بكم في مكان واحد يجمع كل مشاريعنا للأطفال: قصص ممتعة يشاهدها الصغار مع
+          أهاليهم، وكتب تلوين ومتجر صغير في الطريق إليكم.
+        </p>
+        <nav class="hero-nav" aria-label="أقسام الصفحة">
+          <a href="#watch">شاهد القصص</a>
+          <a href="#books">كتب التلوين</a>
+          <a href="#store">المتجر</a>
+        </nav>
+        <figure class="hero-art" style="margin-bottom:0">
+          <img alt="رسم لكتاب حكايات مفتوح تخرج منه قوس قزح وبالونات وطائرة ورقية تحت شمس مبتسمة" width="1920" height="1280" src="img1.webp">
+        </figure>
+      </header>
+
+      <!-- ===== Watch ===== -->
+      <section id="watch" aria-labelledby="watch-title">
+        <div class="section-head">
+          <h2 id="watch-title">شاهد وتابع</h2>
+          <p>قصص أطفال قصيرة ومقاطع مرحة، على المنصة التي تفضلونها.</p>
+        </div>
+
+        <div class="watch-grid">
+          <article class="watch-card">
+            <div class="icon-badge badge-youtube" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="4" fill="#d92c1f"></rect>
+                <path d="M10.2 9.3v5.4c0 .5.55.82.99.57l4.35-2.7a.68.68 0 0 0 0-1.14l-4.35-2.7a.68.68 0 0 0-.99.57Z" fill="#fff"></path>
+              </svg>
+            </div>
+            <h3>قناة Al Videos على يوتيوب</h3>
+            <span class="handle" dir="ltr">youtube.com/@AlVideos474</span>
+            <p class="desc">
+              قناة قصص الأطفال الأساسية: حكايات مرسومة بأسلوب كرتوني دافئ وشخصيات محببة،
+              تناسب وقت القصة قبل النوم ووقت اللعب مع العائلة.
+            </p>
+            <a class="btn btn-youtube" href="https://www.youtube.com/@AlVideos474" target="_blank" rel="noopener">
+              زيارة القناة <span class="arrow" aria-hidden="true">←</span>
+            </a>
+          </article>
+
+          <article class="watch-card">
+            <div class="icon-badge badge-tiktok" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M16.6 3c.4 2.1 1.8 3.6 4 3.9v3c-1.6 0-3-.5-4-1.3v6.6c0 3.4-2.4 5.8-5.7 5.8A5.55 5.55 0 0 1 5.3 15.4c0-3.1 2.5-5.6 5.7-5.6c.3 0 .7 0 1 .1v3.2a2.5 2.5 0 0 0-1-.2 2.4 2.4 0 0 0-2.4 2.4 2.4 2.4 0 0 0 2.4 2.4c1.5 0 2.5-1 2.5-2.7V3h3.1Z" fill="#221d26"></path>
+                <path d="M16.6 3c.4 2.1 1.8 3.6 4 3.9v3c-1.6 0-3-.5-4-1.3v6.6c0 3.4-2.4 5.8-5.7 5.8A5.55 5.55 0 0 1 5.3 15.4c0-3.1 2.5-5.6 5.7-5.6c.3 0 .7 0 1 .1v3.2a2.5 2.5 0 0 0-1-.2 2.4 2.4 0 0 0-2.4 2.4 2.4 2.4 0 0 0 2.4 2.4c1.5 0 2.5-1 2.5-2.7V3h3.1Z" fill="#25f4ee" opacity=".45" transform="translate(-.7 .5)"></path>
+                <path d="M16.6 3c.4 2.1 1.8 3.6 4 3.9v3c-1.6 0-3-.5-4-1.3v6.6c0 3.4-2.4 5.8-5.7 5.8A5.55 5.55 0 0 1 5.3 15.4c0-3.1 2.5-5.6 5.7-5.6c.3 0 .7 0 1 .1v3.2a2.5 2.5 0 0 0-1-.2 2.4 2.4 0 0 0-2.4 2.4 2.4 2.4 0 0 0 2.4 2.4c1.5 0 2.5-1 2.5-2.7V3h3.1Z" fill="#fe2c55" opacity=".4" transform="translate(.7 -.4)"></path>
+              </svg>
+            </div>
+            <h3>حساب تيك توك</h3>
+            <span class="handle" dir="ltr">tiktok.com/@mahmoud.elsharkaw65</span>
+            <p class="desc">
+              مقاطع قصيرة من القصص ولحظات مرحة من وراء الكواليس، لتصلكم أحدث الحكايات
+              أولًا بأول أينما كنتم.
+            </p>
+            <a class="btn btn-tiktok" href="https://www.tiktok.com/@mahmoud.elsharkaw65" target="_blank" rel="noopener">
+              متابعة الحساب <span class="arrow" aria-hidden="true">←</span>
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== Books ===== -->
+      <section id="books" aria-labelledby="books-title">
+        <div class="section-head">
+          <h2 id="books-title">كتب التلوين</h2>
+          <p>من الشاشة إلى الورق: نشاط هادئ وممتع بعيدًا عن الأجهزة.</p>
+        </div>
+
+        <div class="soon-panel">
+          <div class="soon-art">
+            <img alt="رسم لكتاب تلوين مفتوح فيه أسد وفيل وعصفور، بعضها ملوّن وبعضها ينتظر التلوين، وحوله أقلام وألوان شمعية" width="1920" height="1280" loading="lazy" src="img2.webp">
+          </div>
+          <div class="soon-body">
+            <span class="soon-tag tag-books"><span class="dot" aria-hidden="true"></span>قريبًا</span>
+            <h3>كتب تلوين للأطفال</h3>
+            <p>
+              كتب تلوين مستوحاة من عوالم القصص التي يحبها أطفالكم، برسوم واضحة وخطوط
+              عريضة تناسب الأيدي الصغيرة. ما زالت قيد الإعداد، وستصل قريبًا بإذن الله.
+            </p>
+            <ul class="soon-list">
+              <li>
+                <span class="tick tick-books" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                رسوم حيوانات وشخصيات ودودة بخطوط بسيطة
+              </li>
+              <li>
+                <span class="tick tick-books" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                صفحات مناسبة للألوان الشمعية والخشبية
+              </li>
+              <li>
+                <span class="tick tick-books" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                تُعلن مواعيد الإصدار على قناة يوتيوب أولًا
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Store ===== -->
+      <section id="store" aria-labelledby="store-title">
+        <div class="section-head">
+          <h2 id="store-title">المتجر</h2>
+          <p>ركن صغير نجمع فيه كل ما نصنعه للأطفال بحب.</p>
+        </div>
+
+        <div class="soon-panel flip">
+          <div class="soon-art">
+            <img alt="رسم لكشك صغير بمظلة مخططة فيه كتب وأقلام تلوين ودمى قماشية وطائرة ورقية" width="1920" height="1280" loading="lazy" src="img3.webp">
+          </div>
+          <div class="soon-body">
+            <span class="soon-tag tag-store"><span class="dot" aria-hidden="true"></span>قريبًا</span>
+            <h3>متجرنا الصغير</h3>
+            <p>
+              المتجر قيد التجهيز حاليًا. عند افتتاحه ستجدون فيه كتب التلوين وما يليها من
+              منتجات مرتبطة بقصص القناة، في مكان واحد سهل على الأهالي.
+            </p>
+            <ul class="soon-list">
+              <li>
+                <span class="tick tick-store" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                كتب التلوين ستكون أول ما يتوفر فيه
+              </li>
+              <li>
+                <span class="tick tick-store" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 4.8 9 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                تابعوا يوتيوب وتيك توك لخبر الافتتاح
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div class="foot-links">
+          <a href="https://www.youtube.com/@AlVideos474" target="_blank" rel="noopener">Al Videos على يوتيوب</a>
+          <a href="https://www.tiktok.com/@mahmoud.elsharkaw65" target="_blank" rel="noopener">تيك توك</a>
+          <a href="#books">كتب التلوين — قريبًا</a>
+          <a href="#store">المتجر — قريبًا</a>
+        </div>
+        <p>ركن الحكايات والمرح — قصص وكتب تلوين للأطفال وأهاليهم.</p>
+      </footer>
+    </main>
+  
+
+
+</body></html>

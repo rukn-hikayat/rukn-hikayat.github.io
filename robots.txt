@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rukn-hikayat.github.io/sitemap.xml

@@ -71,6 +71,8 @@ $('prev').disabled=ai===0;$('next').disabled=ai===s.ayahs.length-1;$('res').inne
 $('chips').innerHTML='';ids.forEach(k=>{const b=document.createElement('button');b.className='chip'+(k===sid?' on':'');b.textContent=QURAN[k].name.replace('سُورَةُ ','');b.onclick=()=>{sid=k;ai=0;draw()};$('chips').appendChild(b)})}
 $('prev').onclick=()=>{ai--;draw()};$('next').onclick=()=>{ai++;draw()};
 const LBL={ok:'صحيحة',close:'قريبة',wrong:'مختلفة',missing:'ناقصة',extra:'زائدة'};
+function score10(items,total,marked){let s=0,ex=0;items.forEach((x,i)=>{if(x.status==='extra'){ex++;return}if(marked&&marked.has(i))return;s+=x.status==='ok'?1:x.status==='close'?0.5:0});
+return Math.max(0,Math.min(10,Math.round(total?10*s/total-1*ex:0)))}
 let cur=null,curUrl=null,curBlob=null;
 function setAudio(){const a=$('pa');if(a&&curUrl){a.src=curUrl;a.style.display='block';const n=$('pn');if(n)n.textContent=''}}
 function check(heard){const r=compare(QURAN[sid].ayahs[ai],heard);show(r,heard)}
@@ -81,22 +83,24 @@ function rec_(upd){const o=load(),k=sid+':'+(ai+1);o[k]=Object.assign({tries:0},
 function show(r,heard){cur={r,marked:new Set()};let h='<div class="small">سمعتُ: '+(heard||'(لا شيء)')+'</div><div style="margin-top:6px" id="words">';
 r.items.forEach((x,i)=>{h+='<span class="w '+x.status+'" data-i="'+i+'">'+(x.ref||x.said)+'</span>'});
 const pct=r.total?Math.round(100*r.ok/r.total):0;
-h+='</div><div style="margin-top:8px"><b>'+r.ok+' من '+r.total+' كلمات صحيحة ('+pct+'%)</b></div>';
+h+='</div><div style="margin-top:8px"><div class="small">'+r.ok+' من '+r.total+' كلمات صحيحة</div><div style="font-size:30px;font-weight:bold" id="sc"></div><div class="small">الدرجة من 10 (مراجعة تقريبية للكلمات، تنخفض إذا علّم ولي الأمر أخطاء)</div></div>';
 h+='<div class="legend">'+Object.keys(LBL).map(k=>'<span class="'+k+'">'+LBL[k]+'</span>').join('')+'</div>';
 h+='<div class="small" style="margin-top:6px">مراجعة تقريبية للكلمات فقط، وليست تجويداً.</div>';
 h+='<div class="pv"><b>👨‍👩‍👧 مراجعة ولي الأمر</b><div class="small">استمع للتسجيل، واضغط على أي كلمة لتعليمها كخطأ (اضغط مرة ثانية للإلغاء).</div>';
 h+='<audio controls id="pa" style="width:95%;margin:6px 0;display:none"></audio><div class="small" id="pn">'+(curUrl?'':'(جاري تجهيز التسجيل، أو لم يُحفظ تسجيل في هذه المحاولة)')+'</div>';
 h+='<div><button class="btn good" id="pg">✅ تلاوة جيدة</button> <button class="btn redo" id="pr">🔁 تحتاج إعادة</button></div><div class="small" id="pmsg"></div></div>';
 $('res').innerHTML=h;setAudio();
-document.querySelectorAll('#words .w').forEach(el=>el.onclick=()=>{const i=+el.dataset.i;if(cur.marked.has(i)){cur.marked.delete(i);el.classList.remove('pm')}else{cur.marked.add(i);el.classList.add('pm')}});
-const done=v=>{const words=[...cur.marked].map(i=>cur.r.items[i].ref||cur.r.items[i].said);rec_({auto:pct,verdict:v,marked:words,t:Date.now()});$('pmsg').textContent=v==='good'?'تم الحفظ: تلاوة جيدة ✅':'تم الحفظ: تحتاج إعادة 🔁'};
+const upd=()=>{cur.sc=score10(cur.r.items,cur.r.total,cur.marked);$('sc').textContent=cur.sc+' من 10'};upd();
+document.querySelectorAll('#words .w').forEach(el=>el.onclick=()=>{const i=+el.dataset.i;if(cur.marked.has(i)){cur.marked.delete(i);el.classList.remove('pm')}else{cur.marked.add(i);el.classList.add('pm')}upd()});
+const done=v=>{const words=[...cur.marked].map(i=>cur.r.items[i].ref||cur.r.items[i].said);rec_({auto:pct,score:cur.sc,verdict:v,marked:words,t:Date.now()});$('pmsg').textContent=v==='good'?'تم الحفظ: تلاوة جيدة ✅':'تم الحفظ: تحتاج إعادة 🔁'};
 $('pg').onclick=()=>done('good');$('pr').onclick=()=>done('redo');
-rec_({tries:((load()[sid+':'+(ai+1)]||{}).tries||0)+1,auto:pct})}
+rec_({tries:((load()[sid+':'+(ai+1)]||{}).tries||0)+1,auto:pct,score:cur.sc,verdict:null,marked:[]})}
 function prog(){const o=load(),ks=Object.keys(o);let h='<b>📊 تقدم الطفل (على هذا الجهاز فقط)</b>';
 if(!ks.length)h+='<div class="small" style="margin-top:8px">لا توجد مراجعات بعد. سيظهر هنا ما يسجله ولي الأمر.</div>';
 else{const by={};ks.forEach(k=>{const [s]=k.split(':');(by[s]=by[s]||[]).push(o[k])});
 Object.keys(by).forEach(s=>{const a=by[s],g=a.filter(x=>x.verdict==='good').length,rd=a.filter(x=>x.verdict==='redo').length;
-const tot=QURAN[s].ayahs.length;h+='<div class="row"><span>'+QURAN[s].name.replace('سُورَةُ ','')+'</span><span>جيدة '+g+' من '+tot+(rd?' • إعادة '+rd:'')+'</span></div>'});
+const tot=QURAN[s].ayahs.length;const sc=a.filter(x=>typeof x.score==='number');const avg=sc.length?Math.round(10*sc.reduce((p,x)=>p+x.score,0)/sc.length)/10:'-';
+h+='<div class="row"><span>'+QURAN[s].name.replace('سُورَةُ ','')+'</span><span>المتوسط '+avg+' / 10 • جيدة '+g+' من '+tot+(rd?' • إعادة '+rd:'')+'</span></div>'});
 const w={};ks.forEach(k=>(o[k].marked||[]).forEach(x=>w[x]=(w[x]||0)+1));const wl=Object.keys(w);
 if(wl.length)h+='<div class="small" style="margin-top:8px">كلمات علّمها ولي الأمر: '+wl.join('، ')+'</div>';
 h+='<div style="margin-top:8px"><button class="btn" id="clr">مسح التقدم</button></div>'}

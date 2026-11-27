@@ -22,7 +22,7 @@ textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radi
 <div class="card"><div class="small" id="info"></div><div class="small" id="bism"></div>
 <div class="aya" id="aya"></div>
 <div><button class="btn" id="prev">السابقة</button> <button class="btn" id="next">التالية</button></div>
-<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div>
+<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
 <div id="res" style="margin-top:10px"></div>
 <div class="warn" id="warn"></div>
 <details style="margin-top:10px"><summary class="small">لا يعمل الميكروفون؟ اكتب ما قلته</summary>
@@ -133,7 +133,7 @@ if(wl.length)h+='<div class="small" style="margin-top:8px">كلمات علّمه
 h+='<div style="margin-top:8px"><button class="btn" id="clr">مسح التقدم</button></div>'}
 $('prog').innerHTML=h;if($('clr'))$('clr').onclick=()=>{if($('clr').dataset.s){try{localStorage.removeItem(KEY)}catch(e){}prog()}else{$('clr').dataset.s=1;$('clr').textContent='اضغط مرة أخرى للتأكيد'}}}
 $('chk').onclick=()=>{curUrl=null;check($('ta').value)};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=true,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=false,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
 $('warn').textContent=SR?'الخصوصية: أثناء الاستماع، قد يُرسل المتصفح الصوت إلى Google (كروم) أو Apple (سفاري) لتحويله إلى نص. التطبيق نفسه لا يحفظ التسجيل ولا يرسله لأي مكان، والتسجيل يبقى على جهازك.':'متصفحك لا يدعم التعرف على الكلام. جرّب Chrome على أندرويد أو Safari على آيفون، أو اكتب ما قلته في الخانة بالأسفل.';
 let mrec=null,chunks=[],stream=null;
 function stopRec(){try{if(mrec&&mrec.state!=='inactive')mrec.stop()}catch(e){}}
@@ -166,7 +166,7 @@ function begin(){
 $('mic').onclick=()=>{
  if(!SR){$('ms').textContent='التعرف على الكلام غير متاح في هذا المتصفح. استخدم الكتابة بالأسفل.';return}
  if(on){userStop=true;$('ms').textContent='جاري إنهاء المراجعة...';try{rec.stop()}catch(e){finish()};return}
- userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
+ useRec=$('rc').checked;userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
  curUrl=null;chunks=[];mrec=null;try{begin()}catch(e){$('ms').textContent='تعذر البدء: '+e.name}};
 draw();prog();
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}

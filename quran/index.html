@@ -83,8 +83,7 @@ function judge(ayah,alts,exact){
   items.forEach(x=>{
     if(x.status==='ok')return;
     if(x.status==='extra'){
-      const inAll=rs.every(r=>r.items.some(y=>y.status==='extra'&&y.said===x.said));
-      x.status=(sure&&inAll)?'extra':'unsure';return}
+      return} // extra words are never flagged or counted
     // ref word: found OK in another alternative?
     const okElsewhere=rs.some(r=>r.items.some(y=>y.idx===x.idx&&y.status==='ok'));
     if(okElsewhere){x.status='unsure';return}

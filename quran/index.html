@@ -22,6 +22,7 @@ textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radi
 <details id="how" class="card" style="margin:8px 12px;padding:10px" open><summary><b>كيف أستخدم التطبيق؟</b></summary><ol id="hol" style="margin:8px 0;padding-right:20px;line-height:1.9"><li>اختر السورة، ثم اضغط على الميكروفون 🎤 مرة واحدة. الآية مخفية للحفظ من الذاكرة (اضغط عليها لإظهارها).</li><li>اقرأ بصوت واضح، والتطبيق ينتقل للآية التالية وحده.</li><li>اضغط على الميكروفون مرة ثانية للإيقاف، وستظهر المراجعة: الكلمات التي تحتاج استماعاً 🎧 يسمعها معك ولي الأمر.</li></ol><div class="small">📱 افتح الرابط من متصفح <b>كروم (Chrome)</b>، فهو الأفضل لفهم الصوت. التعرف على الكلام قد يرسل الصوت إلى شركة المتصفح (انظر تنبيه الخصوصية أدناه).</div><div class="small" style="margin-top:4px">لفتحه كتطبيق على الهاتف: في كروم اضغط ⋮ ثم «إضافة إلى الشاشة الرئيسية». على الكمبيوتر: اضغط زر «تثبيت التطبيق» (أو أيقونة التثبيت في شريط العنوان في كروم أو إيدج) ليظهر على سطح المكتب. في آيفون (سفاري): زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».</div></details>
 <div class="chips" id="chips"></div>
 <div style="text-align:center;margin:8px 14px 0"><select id="sel" style="font:inherit;padding:9px;border-radius:12px;border:1px solid #bcd;max-width:90%"></select></div>
+<div class="card kid" id="wird" style="background:#fffaf0"></div>
 <div class="card"><div class="small" id="info"></div><div class="small" id="bism"></div>
 <div class="aya" id="aya"></div>
 <div><button class="btn" id="prev">السابقة</button> <button class="btn" id="next">التالية</button></div><div id="goto" class="small" style="display:none;margin:6px 0">اذهب إلى الآية رقم <input id="gon" type="number" min="1" style="width:70px;font:inherit;padding:6px"> <button class="btn" id="gob" type="button">اذهب</button></div>
@@ -109,9 +110,19 @@ function check(heard){show(judge(QURAN[sid].ayahs[ai],[{t:heard,c:1}],true),hear
 var KEY='qr_progress_v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
 function save(o){try{localStorage.setItem(KEY,JSON.stringify(o));return true}catch(e){return false}}
+
+function dayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function wirdToday(){const L=[];KIDS.forEach(k=>QURAN[k].ayahs.forEach((_,i)=>L.push([k,i])));const d=new Date();const dn=Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);return L[dn%L.length]}
+function wirdDone(){try{return (JSON.parse(localStorage.getItem('qr_kids_meta')||'{}').wird||'')===dayKey()}catch(e){return false}}
+function markWird(){try{const m=JSON.parse(localStorage.getItem('qr_kids_meta')||'{}');m.wird=dayKey();localStorage.setItem('qr_kids_meta',JSON.stringify(m))}catch(e){}touchDay();renderWird();prog()}
+function renderWird(){const w=$('wird');if(!w)return;const [k,i]=wirdToday(),done=wirdDone();
+ w.innerHTML='<b>🌅 ورد اليوم</b><div style="margin:6px 0">اقرأ آية واحدة اليوم: <b>'+QURAN[k].name.replace('سُورَةُ ','سورة ')+' • الآية '+(i+1)+'</b></div>'+(done?'<div style="color:#14532d;font-weight:bold">✅ أحسنت! أتممتَ ورد اليوم. نراك غداً بإذن الله</div>':'<button class="btn" id="wo" type="button">📖 افتح الآية</button> <button class="btn good" id="wd" type="button">✅ قرأتُ ورد اليوم</button>');
+ if($('wo'))$('wo').onclick=()=>{sid=k;ai=i;$('res').innerHTML='';draw();rev=true;hideAya();window.scrollTo(0,$('info').offsetTop-20)};
+ if($('wd'))$('wd').onclick=markWird}
+function wirdCheck(k,i){if(mode==='k'&&!wirdDone()){const [a,b]=wirdToday();if(a===k&&b===i)markWird()}}
 function touchDay(){if(mode!=='k')return;try{const f=x=>x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();const m=JSON.parse(localStorage.getItem('qr_kids_meta')||'{}');m.days=m.days||[];const t=f(new Date());if(!m.days.includes(t)){m.days.push(t);m.days=m.days.slice(-60)}localStorage.setItem('qr_kids_meta',JSON.stringify(m))}catch(e){}}
 function streakInfo(){try{const f=x=>x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();const m=JSON.parse(localStorage.getItem('qr_kids_meta')||'{}');const set=new Set(m.days||[]);let n=0;const d=new Date();if(!set.has(f(d)))d.setDate(d.getDate()-1);while(set.has(f(d))){n++;d.setDate(d.getDate()-1)}return n}catch(e){return 0}}
-function rec_(upd){touchDay();const o=load(),k=sid+':'+(ai+1);o[k]=Object.assign({tries:0},o[k],upd);save(o);prog()}
+function rec_(upd){touchDay();wirdCheck(sid,ai);const o=load(),k=sid+':'+(ai+1);o[k]=Object.assign({tries:0},o[k],upd);save(o);prog()}
 function adultize(){if(mode!=='a')return;const w=document.createTreeWalker($('res'),NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())n.nodeValue=n.nodeValue.replace(/ولي الأمر/g,'معلّمك').replace(/👨‍👩‍👧/g,'🧑')}
 function starsOf(sc){return sc>=9?'⭐⭐⭐':sc>=6?'⭐⭐':'⭐'}
 function show(r,heard){r=collapse(r);cur={r,marked:new Set()};let h='<div class="small">سمعتُ: '+(heard||'(لا شيء)')+'</div><div style="margin-top:6px" id="words">';
@@ -175,7 +186,7 @@ function finishAuto(){const text=fullText();
   const rr=collapse({items,total});const sc=score10(rr.items,total,null);
   summ.rows.push({k,rr,sc,total});
   const o=load(),key=sid+':'+(k+1);o[key]=Object.assign({tries:0},o[key],{tries:(o[key]&&o[key].tries||0)+1,auto:total?Math.round(100*rr.ok/total):0,score:sc});save(o)}
- touchDay();prog();$('ms').textContent='تم. هذا ملخص التلاوة.';renderSumm();speakReview(reviewText(summ.rows.map(x=>({k:x.k,items:x.rr.items})),last,last<summ.end-1))}
+ touchDay();summ.rows.forEach(x=>wirdCheck(sid,x.k));prog();$('ms').textContent='تم. هذا ملخص التلاوة.';renderSumm();speakReview(reviewText(summ.rows.map(x=>({k:x.k,items:x.rr.items})),last,last<summ.end-1))}
 function renderSumm(){const S=QURAN[sid];let h='<div class="small">سمعتُ: '+summ.text+'</div><div style="margin:8px 0"><b>ملخص التلاوة</b>: من الآية '+(summ.rows[0].k+1)+' إلى الآية '+(summ.last+1)+'</div>';
  summ.rows.forEach((x,i)=>{h+='<div class="card" style="margin:6px 0;padding:10px"><div class="small">الآية '+(x.k+1)+' • '+x.rr.ok+' من '+x.total+' كلمات تم التعرف عليها <span class="scr"> • تقدير تقريبي '+x.sc+' من 10</span> <span class="kid">'+starsOf(x.sc)+'</span></div><div>'+x.rr.items.map(w=>'<span class="w '+w.status+'">'+w.ref+'</span>').join('')+'</div><button class="btn" data-i="'+i+'">👨‍👩‍👧 مراجعة ولي الأمر</button></div>'});
  if(summ.last<summ.end-1)h+='<div class="small">توقفت القراءة عند الآية '+(summ.last+1)+'. الآيات التالية لم تُقرأ ولم تُحتسب. قد يكون السبب أيضاً أن التعرف على الصوت لم يلتقطها.</div>';
@@ -241,10 +252,11 @@ var HOWK=null;function setMode(m,keep){if(HOWK===null)HOWK=$('hol').innerHTML;$(
  $('note').textContent=ad?'⚠️ هذا التطبيق مساعد هادئ للمبتدئين، وليس بديلاً عن شيخ أو معلّم. لا يشارك التطبيق نتائجك مع أحد، وتبقى على جهازك. تعلّم دائماً على يد معلّم.':'⚠️ هذا التطبيق وسيلة مساعدة للمراجعة فقط، وليس بديلاً عن المعلم أو الشيخ. اعرض تلاوتك على معلمك دائماً.';
  $('tas').textContent=ad?'اكتب ما قلته للمراجعة':'اكتب ما قاله الطفل للمراجعة';
  $('mk').classList.toggle('on',!ad);$('ma').classList.toggle('on',ad);$('goto').style.display=ad?'block':'none';
- $('res').innerHTML='';try{localStorage.setItem('qr_mode',m)}catch(e){}draw();prog()}
+ $('res').innerHTML='';try{localStorage.setItem('qr_mode',m)}catch(e){}draw();prog();renderWird()}
 $('mk').onclick=()=>setMode('k');$('ma').onclick=()=>setMode('a');
 $('gob').onclick=()=>{const n=Math.max(1,Math.min(QURAN[sid].ayahs.length,+$('gon').value||1));ai=n-1;rev=false;draw()};
 try{if(localStorage.getItem('qr_mode')==='a')setMode('a')}catch(e){}
+renderWird();
 $('spt').onclick=()=>doSpeak('السلام عليكم. هذا اختبار الصوت العربي. إذا سمعتني فالمراجعة ستُقرأ بالصوت.',true);var dp=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('inst').style.display='inline-block'});$('inst').onclick=()=>{if(dp){dp.prompt();dp=null;$('inst').style.display='none'}};if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});$('spb').onclick=()=>{if(lastSpeech)doSpeak(lastSpeech);else $('spn').textContent='لا توجد مراجعة بعد. سجّل تلاوة أولاً.'};$('aya').onclick=()=>{if($('hide').checked){rev=!rev;hideAya()}};$('hide').onchange=()=>{rev=false;hideAya()};
 try{if(localStorage.getItem('qr_used'))$('how').open=false}catch(e){}
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}

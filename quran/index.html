@@ -23,7 +23,7 @@ textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radi
 <div class="card"><div class="small" id="info"></div><div class="small" id="bism"></div>
 <div class="aya" id="aya"></div>
 <div><button class="btn" id="prev">السابقة</button> <button class="btn" id="next">التالية</button></div>
-<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="au" checked> تقدّم تلقائي بين الآيات: اضغط الميكروفون مرة واحدة واقرأ، وتظهر المراجعة في النهاية</label><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="hide" checked> وضع الحفظ: إخفاء نص الآية (اضغط على مكانها لإظهارها)</label><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
+<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="au" checked> تقدّم تلقائي بين الآيات: اضغط الميكروفون مرة واحدة واقرأ، وتظهر المراجعة في النهاية</label><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="sp" checked> قراءة المراجعة بالصوت (بصوت الجهاز العربي)</label><div class="small" id="spn" style="color:#8a5a00"></div><button class="btn" id="spb" type="button" style="margin:4px 0">🔊 أعد سماع المراجعة</button><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="hide" checked> وضع الحفظ: إخفاء نص الآية (اضغط على مكانها لإظهارها)</label><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
 <audio controls id="pa0" style="width:95%;margin:6px 0;display:none"></audio><div id="res" style="margin-top:10px"></div>
 <div class="warn" id="warn"></div>
 <details open style="margin-top:10px"><summary class="small">اكتب ما قاله الطفل للمراجعة</summary>
@@ -122,7 +122,7 @@ const upd=()=>{cur.sc=score10(cur.r.items,cur.r.total,cur.marked);$('sc').textCo
 document.querySelectorAll('#words .w').forEach(el=>el.onclick=()=>{const i=+el.dataset.i;if(cur.marked.has(i)){cur.marked.delete(i);el.classList.remove('pm')}else{cur.marked.add(i);el.classList.add('pm')}upd()});
 const done=v=>{const words=[...cur.marked].map(i=>cur.r.items[i].ref||cur.r.items[i].said);rec_({auto:pct,score:cur.sc,verdict:v,marked:words,t:Date.now()});$('pmsg').textContent=v==='good'?'تم الحفظ: تلاوة جيدة ✅':'تم الحفظ: تحتاج إعادة 🔁'};
 $('pg').onclick=()=>done('good');$('pr').onclick=()=>done('redo');
-rec_({tries:((load()[sid+':'+(ai+1)]||{}).tries||0)+1,auto:pct,score:cur.sc,verdict:null,marked:[]})}
+rec_({tries:((load()[sid+':'+(ai+1)]||{}).tries||0)+1,auto:pct,score:cur.sc,verdict:null,marked:[]});if(!window._nosp)speakReview(reviewText([{k:ai,items:r.items}],ai,false))}
 function prog(){const o=load(),ks=Object.keys(o);let h='<b>📊 تقدم الطفل (على هذا الجهاز فقط)</b>';
 if(!ks.length)h+='<div class="small" style="margin-top:8px">لا توجد مراجعات بعد. سيظهر هنا ما يسجله ولي الأمر.</div>';
 else{const by={};ks.forEach(k=>{const [s]=k.split(':');(by[s]=by[s]||[]).push(o[k])});
@@ -157,14 +157,28 @@ function finishAuto(){const text=fullText();
   const rr=collapse({items,total});const sc=score10(rr.items,total,null);
   summ.rows.push({k,rr,sc,total});
   const o=load(),key=sid+':'+(k+1);o[key]=Object.assign({tries:0},o[key],{tries:(o[key]&&o[key].tries||0)+1,auto:total?Math.round(100*rr.ok/total):0,score:sc});save(o)}
- prog();$('ms').textContent='تم. هذا ملخص التلاوة.';renderSumm()}
+ prog();$('ms').textContent='تم. هذا ملخص التلاوة.';renderSumm();speakReview(reviewText(summ.rows.map(x=>({k:x.k,items:x.rr.items})),last,last<S.ayahs.length-1))}
 function renderSumm(){const S=QURAN[sid];let h='<div class="small">سمعتُ: '+summ.text+'</div><div style="margin:8px 0"><b>ملخص التلاوة</b>: من الآية '+(summ.rows[0].k+1)+' إلى الآية '+(summ.last+1)+'</div>';
  summ.rows.forEach((x,i)=>{h+='<div class="card" style="margin:6px 0;padding:10px"><div class="small">الآية '+(x.k+1)+' • '+x.rr.ok+' من '+x.total+' كلمات تم التعرف عليها • تقدير تقريبي '+x.sc+' من 10</div><div>'+x.rr.items.map(w=>'<span class="w '+w.status+'">'+w.ref+'</span>').join('')+'</div><button class="btn" data-i="'+i+'">👨‍👩‍👧 مراجعة ولي الأمر</button></div>'});
  if(summ.last<S.ayahs.length-1)h+='<div class="small">توقفت القراءة عند الآية '+(summ.last+1)+'. الآيات التالية لم تُقرأ ولم تُحتسب. قد يكون السبب أيضاً أن التعرف على الصوت لم يلتقطها.</div>';
  h+='<div class="small" style="margin-top:6px">التطبيق مساعد وليس حَكَماً: 🎧 يعني كلمة قد تحتاج استماعاً، وقد تكون ناقصة أو مختلفة أو لم يلتقطها التعرف.</div>';
  $('res').innerHTML=h;
- document.querySelectorAll('#res button[data-i]').forEach(b=>b.onclick=()=>{const x=summ.rows[+b.dataset.i];ai=x.k;draw();show({items:x.rr.items,ok:x.rr.ok,total:x.total,unsure:x.rr.unsure},summ.text);
+ document.querySelectorAll('#res button[data-i]').forEach(b=>b.onclick=()=>{const x=summ.rows[+b.dataset.i];ai=x.k;draw();window._nosp=1;show({items:x.rr.items,ok:x.rr.ok,total:x.total,unsure:x.rr.unsure},summ.text);window._nosp=0;
   const bb=document.createElement('button');bb.className='btn';bb.textContent='◀ العودة إلى الملخص';bb.onclick=()=>renderSumm();$('res').insertBefore(bb,$('res').firstChild)})}
+
+var lastSpeech='';
+function arVoice(){try{const v=speechSynthesis.getVoices();return v.find(x=>/^ar/i.test(x.lang))||null}catch(e){return null}}
+function doSpeak(t){if(!('speechSynthesis' in window)){$('spn').textContent='هذا المتصفح لا يدعم القراءة بالصوت. اقرأ النتيجة على الشاشة.';return}
+ try{speechSynthesis.cancel();const v=arVoice();
+  if(!v){$('spn').textContent='لا يوجد صوت عربي على هذا الجهاز، فلن تُقرأ المراجعة بالصوت. اقرأها على الشاشة. (يمكن تثبيت صوت عربي من إعدادات الهاتف: تحويل النص إلى كلام).';return}
+  $('spn').textContent='';const u=new SpeechSynthesisUtterance(t);u.voice=v;u.lang=v.lang;u.rate=0.9;speechSynthesis.speak(u)}catch(e){$('spn').textContent='تعذّرت القراءة بالصوت. اقرأ المراجعة على الشاشة.'}}
+function speakReview(t){lastSpeech=t;if($('sp').checked&&!on)doSpeak(t)}
+function reviewText(rows,last,stoppedEarly){const parts=[];let any=false;
+ rows.forEach(x=>{const ws=x.items.filter(w=>w.status==='check').map(w=>w.ref||w.said).filter(Boolean).slice(0,6);
+  if(ws.length){any=true;parts.push('في الآية رقم '+(x.k+1)+'، استمع مرة أخرى إلى '+(ws.length>1?'الكلمات: ':'كلمة: ')+ws.join('، '))}});
+ let t=any?'انتهت المراجعة. هذه مواضع تحتاج استماعاً مرة أخرى، وقد يكون السبب أن التطبيق لم يلتقطها. '+parts.join('. ')+'.':'انتهت المراجعة. سمعتُ كل الكلمات. أحسنت، وما زال الأفضل أن تعرض تلاوتك على معلمك.';
+ if(stoppedEarly)t+=' توقفت القراءة عند الآية رقم '+(last+1)+'.';return t}
+if('speechSynthesis' in window){try{speechSynthesis.onvoiceschanged=()=>{}}catch(e){}}
 function fullText(){return segs.map(s=>s[0].t).join(' ').trim()}
 function finish(){stopRec();on=false;$('mic').classList.remove('on');if(auto&&summ!==undefined&&auto===true&&s0!==null)return finishAuto();
  if(!segs.length){$('ms').textContent='لم أسمع شيئاً. اضغط على الميكروفون وحاول مرة أخرى. (بدء:'+nStart+'، خطأ: '+(lastErr||'لا يوجد')+')';return}
@@ -191,7 +205,7 @@ function begin(){
   finish()};
  function begin_(){rec.start()}
  try{rec.start()}catch(e){$('ms').textContent='تعذر البدء: '+e.name+' '+e.message}}
-$('mic').onclick=()=>{try{localStorage.setItem('qr_used','1')}catch(e){}$('how').open=false;
+$('mic').onclick=()=>{try{speechSynthesis.cancel()}catch(e){}try{localStorage.setItem('qr_used','1')}catch(e){}$('how').open=false;
  if(!SR){if(mrec&&mrec.state==='recording'){stopRec();$('mic').classList.remove('on');$('ms').textContent='تم التسجيل. استمع إليه بالأسفل، ثم اكتب ما سمعتَه في الخانة واضغط «راجع».';return}
   if(!$('rc').checked){$('ms').textContent='التعرف التلقائي متوقف للخصوصية. فعّل «تسجيل صوتي» للتسجيل والاستماع، أو اكتب ما قاله الطفل في الخانة بالأسفل.';return}
   useRec=true;startRec().then(()=>{if(mrec){$('mic').classList.add('on');$('ms').textContent='جاري التسجيل على جهازك فقط. اضغط للإيقاف.'}});return}
@@ -199,7 +213,7 @@ $('mic').onclick=()=>{try{localStorage.setItem('qr_used','1')}catch(e){}$('how')
  useRec=$('rc').checked;auto=$('au').checked;s0=ai;summ=null;userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
  curUrl=null;chunks=[];mrec=null;try{begin()}catch(e){$('ms').textContent='تعذر البدء: '+e.name}};
 draw();prog();
-$('aya').onclick=()=>{if($('hide').checked){rev=!rev;hideAya()}};$('hide').onchange=()=>{rev=false;hideAya()};
+$('spb').onclick=()=>{if(lastSpeech)doSpeak(lastSpeech);else $('spn').textContent='لا توجد مراجعة بعد. سجّل تلاوة أولاً.'};$('aya').onclick=()=>{if($('hide').checked){rev=!rev;hideAya()}};$('hide').onchange=()=>{rev=false;hideAya()};
 try{if(localStorage.getItem('qr_used'))$('how').open=false}catch(e){}
 const q=new URLSearchParams(location.search);if(q.get('demo')!==null){sid=q.get('s')||'112';ai=+(q.get('a')||0);draw();check(q.get('demo'))}
 </script></body></html>

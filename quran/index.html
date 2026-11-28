@@ -18,15 +18,15 @@ textarea{width:92%;font:inherit;font-size:18px;border:1px solid #bcd;border-radi
 .w.pm{outline:3px solid #c0392b}.w.pm::after{content:" ✗";color:#c0392b}.w{cursor:pointer}.pv{background:#eef5ff;border-radius:12px;padding:10px;margin-top:10px}.btn.good{background:#2e7d5b;color:#fff}.btn.redo{background:#e8a33a;color:#fff}.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:15px}</style></head><body><div class="wrap">
 <div class="top">🌙 مراجعة التلاوة للأطفال</div>
 <div class="note">⚠️ هذا التطبيق وسيلة مساعدة للمراجعة فقط، وليس بديلاً عن المعلم أو الشيخ. اعرض تلاوتك على معلمك دائماً.</div>
-<details id="how" class="card" style="margin:8px 12px;padding:10px" open><summary><b>كيف أستخدم التطبيق؟</b></summary><ol style="margin:8px 0;padding-right:20px;line-height:1.9"><li>اختر السورة، ثم اضغط على الميكروفون 🎤 مرة واحدة.</li><li>اقرأ بصوت واضح، والتطبيق ينتقل للآية التالية وحده.</li><li>اضغط على الميكروفون مرة ثانية للإيقاف، وستظهر المراجعة: الكلمات التي تحتاج استماعاً 🎧 يسمعها معك ولي الأمر.</li></ol><div class="small">📱 افتح الرابط من متصفح <b>كروم (Chrome)</b>، فهو الأفضل لفهم الصوت. المتصفحات الأخرى قد لا تسمع شيئاً.</div><div class="small" style="margin-top:4px">لفتحه كتطبيق: في كروم اضغط ⋮ ثم «إضافة إلى الشاشة الرئيسية». في آيفون (سفاري): زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».</div></details>
+<details id="how" class="card" style="margin:8px 12px;padding:10px" open><summary><b>كيف أستخدم التطبيق؟</b></summary><ol style="margin:8px 0;padding-right:20px;line-height:1.9"><li>اختر السورة. (اختياري) فعّل «تسجيل صوتي» واضغط 🎤 للتسجيل على جهازك فقط.</li><li>استمع للتسجيل مع ولي الأمر، ثم اكتب في الخانة ما سمعتَه.</li><li>اضغط «راجع»: الكلمات التي تحتاج استماعاً 🎧 يسمعها معك ولي الأمر.</li></ol><div class="small">📱 افتح الرابط من متصفح <b>كروم (Chrome)</b>، فهو الأفضل لفهم الصوت. التعرف التلقائي على الكلام متوقف حالياً للخصوصية.</div><div class="small" style="margin-top:4px">لفتحه كتطبيق: في كروم اضغط ⋮ ثم «إضافة إلى الشاشة الرئيسية». في آيفون (سفاري): زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».</div></details>
 <div class="chips" id="chips"></div>
 <div class="card"><div class="small" id="info"></div><div class="small" id="bism"></div>
 <div class="aya" id="aya"></div>
 <div><button class="btn" id="prev">السابقة</button> <button class="btn" id="next">التالية</button></div>
-<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="au" checked> تقدّم تلقائي بين الآيات: اضغط الميكروفون مرة واحدة واقرأ، وتظهر المراجعة في النهاية</label><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
-<div id="res" style="margin-top:10px"></div>
+<button class="mic" id="mic">🎤</button><div class="small" id="ms">اضغط على الميكروفون وقل الآية</div><input type="checkbox" id="au" style="display:none"><label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="rc"> تسجيل صوتي لإعادة الاستماع (اختياري، قد لا يعمل مع الميكروفون على بعض الهواتف)</label>
+<audio controls id="pa0" style="width:95%;margin:6px 0;display:none"></audio><div id="res" style="margin-top:10px"></div>
 <div class="warn" id="warn"></div>
-<details style="margin-top:10px"><summary class="small">لا يعمل الميكروفون؟ اكتب ما قلته</summary>
+<details open style="margin-top:10px"><summary class="small">اكتب ما قاله الطفل للمراجعة</summary>
 <textarea id="ta" rows="2" placeholder="اكتب الآية كما قلتها"></textarea><br><button class="btn go" id="chk">راجع</button></details>
 </div>
 <div class="card" id="prog"></div>
@@ -100,7 +100,7 @@ function collapse(r){const items=r.items.filter(x=>x.status!=='extra').map(x=>({
 function score10(items,total,marked){let s=0,ex=0;items.forEach((x,i)=>{if(x.status==='extra'){ex++;return}if(marked&&marked.has(i))return;s+=x.status==='ok'?1:0.5});
 return Math.max(0,Math.min(10,Math.round(total?10*s/total:0)))}
 let cur=null,curUrl=null,curBlob=null;
-function setAudio(){const a=$('pa');if(a&&curUrl){a.src=curUrl;a.style.display='block';const n=$('pn');if(n)n.textContent=''}}
+function setAudio(){const z=$('pa0');if(z&&curUrl){z.src=curUrl;z.style.display='block'}const a=$('pa');if(a&&curUrl){a.src=curUrl;a.style.display='block';const n=$('pn');if(n)n.textContent=''}}
 function check(heard){show(judge(QURAN[sid].ayahs[ai],[{t:heard,c:1}],true),heard)}
 const KEY='qr_progress_v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
@@ -133,8 +133,9 @@ if(wl.length)h+='<div class="small" style="margin-top:8px">كلمات علّمه
 h+='<div style="margin-top:8px"><button class="btn" id="clr">مسح التقدم</button></div>'}
 $('prog').innerHTML=h;if($('clr'))$('clr').onclick=()=>{if($('clr').dataset.s){try{localStorage.removeItem(KEY)}catch(e){}prog()}else{$('clr').dataset.s=1;$('clr').textContent='اضغط مرة أخرى للتأكيد'}}}
 $('chk').onclick=()=>{curUrl=null;check($('ta').value)};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,userStop=false,segs=[],useRec=false,auto=true,s0=0,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
-$('warn').textContent=SR?'الخصوصية: أثناء الاستماع، قد يُرسل المتصفح الصوت إلى Google (كروم) أو Apple (سفاري) لتحويله إلى نص. التطبيق نفسه لا يحفظ التسجيل ولا يرسله لأي مكان، والتسجيل يبقى على جهازك.':'متصفحك لا يدعم التعرف على الكلام. جرّب Chrome على أندرويد أو Safari على آيفون، أو اكتب ما قلته في الخانة بالأسفل.';
+const SR=null; // speech recognition is OFF for privacy (browser engines may send audio to Google/Apple)
+let rec=null,on=false,userStop=false,segs=[],useRec=false,auto=true,s0=0,restarts=0,lastRes=0,fatal=false,cont=true,quick=0,t0=0,lastErr='',nStart=0;
+$('warn').textContent='الخصوصية: التعرف التلقائي على الكلام متوقف حالياً حتى لا يُرسل الصوت إلى أي جهة. التسجيل (إن فعّلته) يبقى على جهازك فقط ولا يُرسل لأي مكان. للمراجعة اكتب ما قاله الطفل في الخانة بالأسفل.';
 let mrec=null,chunks=[],stream=null;
 function stopRec(){try{if(mrec&&mrec.state!=='inactive')mrec.stop()}catch(e){}}
 async function startRec(){curUrl=null;chunks=[];mrec=null;if(!useRec)return;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});mrec=new MediaRecorder(stream);mrec.ondataavailable=e=>chunks.push(e.data);mrec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());if(chunks.length){curBlob=new Blob(chunks,{type:mrec.mimeType});curUrl=URL.createObjectURL(curBlob);setAudio()}};mrec.start()}catch(e){mrec=null;$('ms').textContent='لا يمكن التسجيل مع التعرف ('+e.name+'). سأستمع بدون تسجيل.'}}
@@ -171,6 +172,7 @@ function finish(){stopRec();on=false;$('mic').classList.remove('on');if(auto&&su
  const alts=[];for(let k=0;k<n;k++)alts.push({t:segs.map(s=>(s[k]||s[0]).t).join(' '),c:Math.min(...segs.map(s=>(s[k]||s[0]).c||0))});
  $('ms').textContent='تم. اضغط على الميكروفون لمحاولة جديدة.';show(judge(ref,alts,false),alts[0].t)}
 function begin(){
+ if(!SR)return;
  rec=new SR();rec.lang='ar-SA';rec.continuous=cont;rec.interimResults=true;rec.maxAlternatives=5;
  rec.onstart=()=>{t0=Date.now();nStart++;if(!on&&useRec&&!mrec)startRec();on=true;$('mic').classList.add('on');if(!fatal)$('ms').textContent='جاري الاستماع... اقرأ الآية كاملة، ثم اضغط على الميكروفون للإيقاف'};
  rec.onresult=ev=>{lastRes=Date.now();let interim='';
@@ -190,7 +192,9 @@ function begin(){
  function begin_(){rec.start()}
  try{rec.start()}catch(e){$('ms').textContent='تعذر البدء: '+e.name+' '+e.message}}
 $('mic').onclick=()=>{try{localStorage.setItem('qr_used','1')}catch(e){}$('how').open=false;
- if(!SR){$('ms').textContent='التعرف على الكلام غير متاح في هذا المتصفح. استخدم الكتابة بالأسفل.';return}
+ if(!SR){if(mrec&&mrec.state==='recording'){stopRec();$('mic').classList.remove('on');$('ms').textContent='تم التسجيل. استمع إليه بالأسفل، ثم اكتب ما سمعتَه في الخانة واضغط «راجع».';return}
+  if(!$('rc').checked){$('ms').textContent='التعرف التلقائي متوقف للخصوصية. فعّل «تسجيل صوتي» للتسجيل والاستماع، أو اكتب ما قاله الطفل في الخانة بالأسفل.';return}
+  useRec=true;startRec().then(()=>{if(mrec){$('mic').classList.add('on');$('ms').textContent='جاري التسجيل على جهازك فقط. اضغط للإيقاف.'}});return}
  if(on){userStop=true;$('ms').textContent='جاري إنهاء المراجعة...';try{rec.stop()}catch(e){finish()};return}
  useRec=$('rc').checked;auto=$('au').checked;s0=ai;summ=null;userStop=false;fatal=false;segs=[];restarts=0;quick=0;nStart=0;lastErr='';$('res').innerHTML='';
  curUrl=null;chunks=[];mrec=null;try{begin()}catch(e){$('ms').textContent='تعذر البدء: '+e.name}};
